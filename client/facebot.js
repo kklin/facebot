@@ -102,31 +102,48 @@ var process = function(new_messages) {
   }
 }
 
-var processed_messages = [];
-var check_for_updates = function() {
-  var messages_raw = document.querySelectorAll(".webMessengerMessageGroup");
-  processed_messages_new = [];
-  var new_messages = [];
-  for (var i=0 ; i<messages_raw.length ; i++) {
-    var messages = parse_messages(messages_raw[i]);
-    for (var j=0 ; j<messages.length ; j++) {
-        processed_messages_new.push(messages[j]);
-        var processed = _.findIndex(processed_messages, messages[j]); // this is so slow:  we should be taking advantage of the fact that the arrays are sorted (or use MutationObserver better)
-        if (processed == -1 && processed_messages.length != 0) {
-          new_messages.push(messages[j]);
-        }
-        // console.log("Got a message at " + messages[j].timestamp + " from " + messages[j].from + ":");
-        // console.log(messages[j].message);
+var newest_messages = null;
+function determineNew(nodes) {
+  var added_node = nodes[nodes.length-1]; // assumes that the new message is always in the last changed node
+  var messages = parse_messages(added_node);
+
+  // our first time running:  we're parsing all the old messages
+  if (newest_messages == null) {
+    newest_messages = messages;
+    return [];
+  }
+
+  // find the first index that messages and newest_messages differs
+  var j=0;
+  for (var i=0 ; i<messages.length ; i++) {
+    var message = messages[i];
+    if (j < newest_messages.length && _.isEqual(message, newest_messages[j])) {
+      j++;
+    } else {
+      break;
     }
   }
-  processed_messages = processed_messages_new;
+
+  var new_messages = [];
+  for (var i=j ; i<messages.length ; i++) {
+    new_messages.push(messages[i]);
+  }
+
+  // prep for next time
+  newest_messages = messages;
   return new_messages;
+}
+
+// TODO
+function getConversationName() {
+
 }
 
 var observer = new MutationObserver(function(mutations) { 
     mutations.forEach(function(mutation) {
       if (mutation.addedNodes.length != 0) {
-        var new_messages = check_for_updates();
+        // var new_messages = check_for_updates();
+        var new_messages = determineNew(mutation.addedNodes);
         process(new_messages);
       }
     });
