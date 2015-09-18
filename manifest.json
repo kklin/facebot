@@ -9,12 +9,5 @@
       "js": ["facebot.js",
              "lodash.min.js",
              "jquery-1.11.3.min.js"]
-  }],
-  "permissions": [
-    "http://api.openweathermap.org/*"
-  ],
-  "background": {
-          "scripts": ["background.js"],
-          "persistent": false
-  }
+  }]
 }
