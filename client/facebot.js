@@ -3,7 +3,20 @@ console.log("Loaded injected facebot code")
 var BOT_NAME = "Kevin Lin";
 var ATTACHED_CONVERSATION = getConversationName(); // TODO: can we make this variable final?
 
-var state = { todo: [] }; // TODO: load from a file
+var state = null;
+var query = {};
+query[ATTACHED_CONVERSATION] = { todo: [] }
+chrome.storage.sync.get(query, function(result) { 
+  state = result[ATTACHED_CONVERSATION]; 
+});
+
+function saveState() {
+  var to_save = {}
+  to_save[ATTACHED_CONVERSATION] = state;
+  chrome.storage.sync.set(to_save, function() {
+      console.log("Successfully saved the bot state");
+  });
+}
 
 /*** Setup Git notifications ***/
 var pusher = new Pusher('00db2f5136ce6619a03c');
@@ -35,6 +48,7 @@ function add_todo_function(message) {
   state.todo.push({item: todo,
                    user: message.from});
   send_message("Added the TODO");
+  saveState();
 }
 
 function print_todo_function(message) {
