@@ -1,0 +1,20 @@
+{
+  "manifest_version": 2,
+
+  "name": "FaceBot",
+  "description": "A Chatbot for Facebook messenger",
+  "version": "1.0",
+  "content_scripts" : [{
+      "matches": [ "https://www.facebook.com/messages/*" ],
+      "js": ["facebot.js",
+             "lodash.min.js",
+             "jquery-1.11.3.min.js"]
+  }],
+  "permissions": [
+    "http://api.openweathermap.org/*"
+  ],
+  "background": {
+          "scripts": ["background.js"],
+          "persistent": false
+  }
+}
