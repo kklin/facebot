@@ -1,8 +1,8 @@
-console.log("Loaded injected facebot code")
-
-var BOT_NAME = "Kevin Lin";
+var BOT_NAME = "Jarvis"; // TODO: put into some config file
 var ATTACHED_CONVERSATION = getConversationName(); // TODO: can we make this variable final?
 
+// State handling {{{
+// For persisting state between page loads
 var state = null;
 var query = {};
 query[ATTACHED_CONVERSATION] = { todo: [] }
@@ -17,20 +17,23 @@ function saveState() {
       console.log("Successfully saved the bot state");
   });
 }
+// }}}
 
-/*** Setup Git notifications ***/
+// Push notifications {{{
+// Setup Git notifications
 var pusher = new Pusher('00db2f5136ce6619a03c');
 var git_channel = pusher.subscribe('git_notifications');
 
-//do something with our new information
 git_channel.bind('push', function(push){
     if (getConversationName() == ATTACHED_CONVERSATION) {
       send_message(push.user + " pushed to " + push.repo + ": " + push.message);
     }
 });
 
+// }}}
 
-/*** Bot action definitions ***/
+
+// Bot action definitions {{{
 var bot_actions = [
 { description: "Get weather", pattern: /^\/weather (.*)/, action: weather_function },
 { description: "Get time", pattern: /^\/time/,    action: time_function },
@@ -109,7 +112,10 @@ function conversation_name_function(message) {
   send_message("In conversation with \"" + getConversationName() + "\"");
 }
 
-/*** Bot utility functions ***/
+// }}}
+
+// Bot utility functions {{{
+// Stuff that is used for bot actions
 
 function getConversationName() {
   var url = window.location.href;
@@ -125,7 +131,11 @@ function send_message(message) {
   send_button.click();
 }
 
-var parse_messages = function(message) {
+/* }}} */
+
+// Main processing logic for new messages {{{
+
+function parsed_messages(message) {
   var timestamp = message.querySelector("._ohf abbr").textContent;
   var from = message.querySelector("._36 a").textContent;
   var message_elems = message.querySelectorAll("._3hi");
@@ -139,7 +149,7 @@ var parse_messages = function(message) {
 }
 
 // the main processing loop
-var process = function(new_messages) {
+function process(new_messages) {
   for (var i=0 ; i<new_messages.length ; i++) {
     console.log("Got a message at " + new_messages[i].timestamp + " from " + new_messages[i].from + ":");
     console.log(new_messages[i].message);
@@ -201,8 +211,10 @@ var observer = new MutationObserver(function(mutations) {
     });
 });
 
-var config = { childList: true };
+// }}}
 
+// start the processing logic
+var config = { childList: true };
 var messagesContainer = document.querySelector("#webMessengerRecentMessages");
-// pass in the target node, as well as the observer options
 observer.observe(messagesContainer, config);
+console.log("Loaded injected facebot code")
