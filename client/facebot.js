@@ -2,6 +2,16 @@ console.log("Loaded injected facebot code")
 
 var BOT_NAME = "Kevin Lin";
 
+/*** Setup Git notifications ***/
+var pusher = new Pusher('00db2f5136ce6619a03c');
+var git_channel = pusher.subscribe('git_notifications');
+
+//do something with our new information
+git_channel.bind('push', function(push){
+    send_message(push.user + " pushed to " + push.repo + ": " + push.message);
+});
+
+
 /*** Bot action definitions ***/
 var bot_actions = [
 { description: "Get weather", pattern: /\/weather (.*)/, action: weather_function },
@@ -13,6 +23,10 @@ var bot_actions = [
 
 function laugh_function(message) {
   var num_laughs = parseInt(/\/laugh (\d*)/.exec(message.message)[1]);
+  if (num_laughs > 50) {
+    send_message("No.");
+    return;
+  }
   var ret = "";
   for (var i=0 ; i<num_laughs ; i++) {
     ret += "ha";
