@@ -18,6 +18,7 @@ def trigger_notification():
     p.trigger('git_notifications', 'push', {'user': 'kklin', 'repo': 'test', 'message': 'hello world'})
     return "Notification triggered!"
 
+# TODO: map what repos are associated with what chats
 # someone pushed to Git
 @app.route("/git", methods=['POST'])
 def push_notification():
