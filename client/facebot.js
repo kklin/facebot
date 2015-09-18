@@ -14,11 +14,11 @@ git_channel.bind('push', function(push){
 
 /*** Bot action definitions ***/
 var bot_actions = [
-{ description: "Get weather", pattern: /\/weather (.*)/, action: weather_function },
-{ description: "Get time", pattern: /\/time/,    action: time_function },
-{ description: "Echo back the message", pattern: /\/echo/,    action: echo_function },
-{ description: "Laugh", pattern: /\/laugh (\d*)/,    action: laugh_function },
-{ description: "Display help", pattern: /\/help/, action: help_function },
+{ description: "Get weather", pattern: /^\/weather (.*)/, action: weather_function },
+{ description: "Get time", pattern: /^\/time/,    action: time_function },
+{ description: "Echo back the message", pattern: /^\/echo/,    action: echo_function },
+{ description: "Laugh", pattern: /^\/laugh (\d*)/,    action: laugh_function },
+{ description: "Display help", pattern: /^\/help/, action: help_function },
 ];
 
 function laugh_function(message) {
