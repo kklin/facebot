@@ -3,6 +3,8 @@ console.log("Loaded injected facebot code")
 var BOT_NAME = "Kevin Lin";
 var ATTACHED_CONVERSATION = getConversationName(); // TODO: can we make this variable final?
 
+var state = { todo: [] }; // TODO: load from a file
+
 /*** Setup Git notifications ***/
 var pusher = new Pusher('00db2f5136ce6619a03c');
 var git_channel = pusher.subscribe('git_notifications');
@@ -24,7 +26,22 @@ var bot_actions = [
 { description: "Display help", pattern: /^\/help/, action: help_function },
 { description: "Display conversation currently in", pattern: /^\/convo_name/, action: conversation_name_function },
 { description: "Say hi", pattern: /^\/hello/, action: hello_function },
+{ description: "Add to TODO list", pattern: /^\/add todo (.*)/, action: add_todo_function },
+{ description: "Print TODO list", pattern: /^\/list todo/, action: print_todo_function },
 ];
+
+function add_todo_function(message) {
+  var todo = /^\/add todo (.*)/.exec(message.message)[1];
+  state.todo.push({item: todo,
+                   user: message.from});
+  send_message("Added the TODO");
+}
+
+function print_todo_function(message) {
+  for (var i = 0 ; i<state.todo.length ; i++) {
+    send_message(state.todo[i].user + " needs to: " + state.todo[i].item);
+  }
+}
 
 function hello_function(message) {
   send_message("Hello " + message.from);
