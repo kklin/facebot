@@ -23,7 +23,12 @@ var bot_actions = [
 { description: "Laugh", pattern: /^\/laugh (\d*)/,    action: laugh_function },
 { description: "Display help", pattern: /^\/help/, action: help_function },
 { description: "Display conversation currently in", pattern: /^\/convo_name/, action: conversation_name_function },
+{ description: "Say hi", pattern: /^\/hello/, action: hello_function },
 ];
+
+function hello_function(message) {
+  send_message("Hello " + message.from);
+}
 
 function laugh_function(message) {
   var num_laughs = parseInt(/\/laugh (\d*)/.exec(message.message)[1]);
