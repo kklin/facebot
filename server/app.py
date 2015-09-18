@@ -2,7 +2,7 @@ import pusher
 import secret
 import json
 
-from flask import Flask # requires `pip install flask`
+from flask import Flask 
 from flask import render_template
 from flask import request
 app = Flask(__name__)
