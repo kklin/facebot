@@ -24,21 +24,14 @@ function echo_function(message) {
   send_message("You said: " + /\/echo (.*)/.exec(message.message)[1]); 
 }
 
-function get_weather(loc, callback) {
-  /*chrome.runtime.sendMessage({type:"ajax", request:
-                                             { url: "http://api.openweathermap.org/data/2.5/weather?q=" + loc,
-                                              dataType : "jsonp",
-                                              success: callback}
-  });*/
-}
-
 function weather_function(message) {
   var loc = /\/weather (.*)/.exec(message.message)[1]; // TODO: we shouldn't have to manually parse out the command invocation
   $.ajax(
           { url: "https://api.wunderground.com/api/a03b82e84fcc85b1/geolookup/conditions/q/" + loc + ".json",
             success: function(weather) {
                 if (weather['location'] != undefined) {
-                    send_message("Temperature in " + weather['location']['city'] + " is currently " + weather['current_observation']['temp_f']);
+                    // TODO: handle locations outside of the US
+                    send_message("Temperature in " + weather['location']['city'] + ", " + weather['location']['state'] + " is currently " + weather['current_observation']['temp_f']);
                 } else {
                     send_message("Error retrieving weather for " + loc + ". Maybe you should change the location string.");
                 }
