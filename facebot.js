@@ -35,10 +35,13 @@ function get_weather(loc, callback) {
 function weather_function(message) {
   var loc = /\/weather (.*)/.exec(message.message)[1]; // TODO: we shouldn't have to manually parse out the command invocation
   $.ajax(
-          { url: "https://api.wunderground.com/api/a03b82e84fcc85b1/geolookup/conditions/q/IA/Cedar_Rapids.json", // TODO; add loc
+          { url: "https://api.wunderground.com/api/a03b82e84fcc85b1/geolookup/conditions/q/" + loc + ".json",
             success: function(weather) {
-                send_message("Weather for " + weather['location']['city'] + " is currently:");
-                send_message(weather['current_observation']['temp_f']);
+                if (weather['location'] != undefined) {
+                    send_message("Temperature in " + weather['location']['city'] + " is currently " + weather['current_observation']['temp_f']);
+                } else {
+                    send_message("Error retrieving weather for " + loc + ". Maybe you should change the location string.");
+                }
             }
       }
   );
