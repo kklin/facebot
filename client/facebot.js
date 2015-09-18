@@ -19,6 +19,7 @@ var bot_actions = [
 { description: "Echo back the message", pattern: /^\/echo/,    action: echo_function },
 { description: "Laugh", pattern: /^\/laugh (\d*)/,    action: laugh_function },
 { description: "Display help", pattern: /^\/help/, action: help_function },
+{ description: "Display conversation currently in", pattern: /^\/convo_name/, action: conversation_name_function },
 ];
 
 function laugh_function(message) {
@@ -65,7 +66,17 @@ function help_function(message) {
   }
 }
 
+function conversation_name_function(message) {
+  send_message("In conversation with \"" + getConversationName() + "\"");
+}
+
 /*** Bot utility functions ***/
+
+function getConversationName() {
+  var url = window.location.href;
+  var matches = /https:\/\/www\.facebook\.com\/messages\/(.*)/.exec(url);
+  return matches[1];
+}
 
 var chat_box = document.querySelector("[name=message_body]");
 var send_button = document.querySelector("#u_0_r");
@@ -132,11 +143,6 @@ function determineNew(nodes) {
   // prep for next time
   newest_messages = messages;
   return new_messages;
-}
-
-// TODO
-function getConversationName() {
-
 }
 
 var observer = new MutationObserver(function(mutations) { 
