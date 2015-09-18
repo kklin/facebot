@@ -1,6 +1,7 @@
 console.log("Loaded injected facebot code")
 
 var BOT_NAME = "Kevin Lin";
+var ATTACHED_CONVERSATION = getConversationName(); // TODO: can we make this variable final?
 
 /*** Setup Git notifications ***/
 var pusher = new Pusher('00db2f5136ce6619a03c');
@@ -8,7 +9,9 @@ var git_channel = pusher.subscribe('git_notifications');
 
 //do something with our new information
 git_channel.bind('push', function(push){
-    send_message(push.user + " pushed to " + push.repo + ": " + push.message);
+    if (getConversationName() == ATTACHED_CONVERSATION) {
+      send_message(push.user + " pushed to " + push.repo + ": " + push.message);
+    }
 });
 
 
@@ -115,6 +118,10 @@ var process = function(new_messages) {
 
 var newest_messages = null;
 function determineNew(nodes) {
+  // Don't process messages when you switch conversations
+  if (getConversationName() != ATTACHED_CONVERSATION) {
+    return [];
+  }
   var added_node = nodes[nodes.length-1]; // assumes that the new message is always in the last changed node
   var messages = parse_messages(added_node);
 
@@ -124,7 +131,10 @@ function determineNew(nodes) {
     return [];
   }
 
-  // find the first index that messages and newest_messages differs
+  // TODO: this algorithm will break if you switch conversations, let
+  // messages accumulate in the other conversation, and then switch back
+  
+  // Find the first index that messages and newest_messages differs
   var j=0;
   for (var i=0 ; i<messages.length ; i++) {
     var message = messages[i];
