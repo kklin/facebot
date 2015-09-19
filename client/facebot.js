@@ -32,31 +32,42 @@ git_channel.bind('push', function(push){
 
 // }}}
 
-
 // Bot action definitions {{{
 var bot_actions = [
-{ description: "Get weather", pattern: /^\/weather (.*)/, action: weather_function },
+{ description: "Get weather", pattern: /^\/weather (.+)/, action: weather_function },
 { description: "Get time", pattern: /^\/time/,    action: time_function },
 { description: "Echo back the message", pattern: /^\/echo/,    action: echo_function },
-{ description: "Laugh", pattern: /^\/laugh (\d*)/,    action: laugh_function },
+{ description: "Laugh", pattern: /^\/laugh (\d+)/,    action: laugh_function },
 { description: "Display help", pattern: /^\/help/, action: help_function },
 { description: "Display conversation currently in", pattern: /^\/convo_name/, action: conversation_name_function },
 { description: "Say hi", pattern: /^\/hello/, action: hello_function },
-{ description: "Add to TODO list", pattern: /^\/add todo (.*)/, action: add_todo_function },
+{ description: "Add to TODO list", pattern: /^\/add todo (.+)/, action: add_todo_function },
 { description: "Print TODO list", pattern: /^\/list todo/, action: print_todo_function },
+{ description: "Remove from TODO list", pattern: /^\/remove todo (\d+)/, action: remove_todo_function },
 ];
 
 function add_todo_function(message) {
   var todo = /^\/add todo (.*)/.exec(message.message)[1];
   state.todo.push({item: todo,
                    user: message.from});
-  send_message("Added the TODO");
+  // send_message("Added the TODO");
   saveState();
+}
+
+function remove_todo_function(message) {
+  var todo = /^\/remove todo (\d+)/.exec(message.message)[1];
+  todo = parseInt(todo);
+  if (state.todo[todo].user != message.from) {
+    send_message("Error: only " + state.todo[todo].user + " can remove this TODO.");
+  } else {
+    state.todo.splice(todo, 1);
+    saveState();
+  }
 }
 
 function print_todo_function(message) {
   for (var i = 0 ; i<state.todo.length ; i++) {
-    send_message(state.todo[i].user + " needs to: " + state.todo[i].item);
+    send_message(i + ": " + state.todo[i].user + " needs to: " + state.todo[i].item);
   }
 }
 
@@ -135,7 +146,7 @@ function send_message(message) {
 
 // Main processing logic for new messages {{{
 
-function parsed_messages(message) {
+function parse_messages(message) {
   var timestamp = message.querySelector("._ohf abbr").textContent;
   var from = message.querySelector("._36 a").textContent;
   var message_elems = message.querySelectorAll("._3hi");
