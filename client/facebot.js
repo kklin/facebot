@@ -46,7 +46,24 @@ var bot_actions = [
 { description: "Print TODO list", pattern: /^\/list todo/, action: print_todo_function },
 { description: "Remove from TODO list", pattern: /^\/remove todo (\d+)/, action: remove_todo_function },
 { description: "Get a random gif", pattern: /^\/giphy/, action: giphy_function },
+{ description: "Get the most relevant wikipedia page", pattern: /^\/wiki/, action: wiki_function },
 ];
+
+// TODO: refactor API calls to use data parameter instead of building link
+
+function wiki_function(message) {
+  // TODO: if no search term provided, just pick a random picture
+  var search_term = /^\/wiki (.+)/.exec(message.message)[1];
+  var search_term_encoded = encodeURI(search_term);
+  $.ajax(
+          { url: "https://en.wikipedia.org/w/api.php?action=opensearch&search=" + search_term_encoded + "&limit=1&namespace=0&format=json",
+            headers: { 'Api-User-Agent': 'Example/1.0' },
+            success: function(result) {
+                send_message(result[2] + "\n" + result[3], true);
+            }
+      }
+  );
+}
 
 function giphy_function(message) {
   // TODO: if no search term provided, just pick a random picture
@@ -127,6 +144,7 @@ function time_function(message) {
   send_message("It is now " + Date(), false);
 }
 
+// TODO: send one message with new lines instead of separate messages
 function help_function(message) {
   send_message("These are the available functions", false);
   for (var i = 0 ; i<bot_actions.length ; i++) {
