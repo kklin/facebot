@@ -4,9 +4,10 @@ var GIPHY_API_KEY = 'dc6zaTOxFJmzC';
 
 // State handling {{{
 // For persisting state between page loads
+// TODO: make state auto-save when changed
 var state = null;
 var query = {};
-query[ATTACHED_CONVERSATION] = { todo: [] }
+query[ATTACHED_CONVERSATION] = { todo: [], points: {} }
 chrome.storage.sync.get(query, function(result) { 
   state = result[ATTACHED_CONVERSATION]; 
 });
@@ -49,6 +50,9 @@ var bot_actions = [
 { description: "Get the most relevant wikipedia page", pattern: /^\/wiki/, action: wiki_function },
 { description: "Google authorize", pattern: /^\/gauth/, action: google_authorize_function },
 { description: "Show calendar", pattern: /^\/calendar/, action: show_calendar_function },
+{ description: "Increment points", pattern: /^(.*)\+\+/, action: increment_points_function },
+{ description: "Decrement points", pattern: /^(.*)--/, action: decrement_points_function },
+{ description: "List all points", pattern: /^\/points/, action: list_points_function },
 ];
 
 // Google integration {{{
@@ -112,8 +116,49 @@ function show_calendar_function(message) {
 
 // }}}
 
-// TODO: refactor API calls to use data parameter instead of building link
+// Brownie points {{{
+// TODO: fix pluraity of messages
+function increment_points_function(message) {
+  var who = /^(.*)\+\+/.exec(message.message)[1];
+  if (state.points == undefined) {
+    state.points = {};
+  }
+  if (who in state.points) {
+    state.points[who]++;
+  } else {
+    state.points[who] = 1;
+  }
+  saveState();
+  send_message(">>> " + who + " now has " + state.points[who] + " points.", false);
+}
 
+function decrement_points_function(message) {
+  var who = /^(.*)--/.exec(message.message)[1];
+  if (state.points == undefined) {
+    state.points = {};
+  }
+  if (who in state.points) {
+    state.points[who]--;
+  } else {
+    state.points[who] = -1;
+  }
+  saveState();
+  send_message(">>> " + who + " now has " + state.points[who] + " points.", false);
+}
+
+function list_points_function(message) {
+  var ret = "";
+  for (var who in state.points) {
+    if (state.points.hasOwnProperty(who)) {
+      ret += ">>> " + who + " has " + state.points[who] + " points.\n";
+    }
+  }
+  send_message(ret, false);
+}
+
+// }}}
+
+// TODO: refactor API calls to use data parameter instead of building link
 function wiki_function(message) {
   // TODO: if no search term provided, just pick a random picture
   var search_term = /^\/wiki (.+)/.exec(message.message)[1];
@@ -253,6 +298,7 @@ function send_message(message, delay) {
 /* }}} */
 
 // Main processing logic for new messages {{{
+// TODO: make the bot ignore the message if it's coming from itself
 
 function parse_messages(message) {
   var timestamp = message.querySelector("._ohf abbr").textContent;
