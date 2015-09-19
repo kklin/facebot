@@ -1,5 +1,6 @@
 var BOT_NAME = "Jarvis"; // TODO: put into some config file
 var ATTACHED_CONVERSATION = getConversationName(); // TODO: can we make this variable final?
+var GIPHY_API_KEY = 'dc6zaTOxFJmzC';
 
 // State handling {{{
 // For persisting state between page loads
@@ -26,7 +27,7 @@ var git_channel = pusher.subscribe('git_notifications');
 
 git_channel.bind('push', function(push){
     if (getConversationName() == ATTACHED_CONVERSATION) {
-      send_message(push.user + " pushed to " + push.repo + ": " + push.message);
+      send_message(push.user + " pushed to " + push.repo + ": " + push.message, false);
     }
 });
 
@@ -44,13 +45,27 @@ var bot_actions = [
 { description: "Add to TODO list", pattern: /^\/add todo (.+)/, action: add_todo_function },
 { description: "Print TODO list", pattern: /^\/list todo/, action: print_todo_function },
 { description: "Remove from TODO list", pattern: /^\/remove todo (\d+)/, action: remove_todo_function },
+{ description: "Get a random gif", pattern: /^\/giphy/, action: giphy_function },
 ];
+
+function giphy_function(message) {
+  // TODO: if no search term provided, just pick a random picture
+  var search_term = /^\/giphy (.+)/.exec(message.message)[1];
+  var search_term_encoded = encodeURI(search_term);
+  $.ajax(
+          { url: "https://api.giphy.com/v1/gifs/random?tag=" + search_term_encoded + "&api_key=" + GIPHY_API_KEY,
+            success: function(result) {
+                send_message(result.data.image_original_url, true);
+            }
+      }
+  );
+}
 
 function add_todo_function(message) {
   var todo = /^\/add todo (.*)/.exec(message.message)[1];
   state.todo.push({item: todo,
                    user: message.from});
-  // send_message("Added the TODO");
+  // send_message("Added the TODO", false);
   saveState();
 }
 
@@ -58,7 +73,7 @@ function remove_todo_function(message) {
   var todo = /^\/remove todo (\d+)/.exec(message.message)[1];
   todo = parseInt(todo);
   if (state.todo[todo].user != message.from) {
-    send_message("Error: only " + state.todo[todo].user + " can remove this TODO.");
+    send_message("Error: only " + state.todo[todo].user + " can remove this TODO.", false);
   } else {
     state.todo.splice(todo, 1);
     saveState();
@@ -67,29 +82,29 @@ function remove_todo_function(message) {
 
 function print_todo_function(message) {
   for (var i = 0 ; i<state.todo.length ; i++) {
-    send_message(i + ": " + state.todo[i].user + " needs to: " + state.todo[i].item);
+    send_message(i + ": " + state.todo[i].user + " needs to: " + state.todo[i].item, false);
   }
 }
 
 function hello_function(message) {
-  send_message("Hello " + message.from);
+  send_message("Hello " + message.from, false);
 }
 
 function laugh_function(message) {
   var num_laughs = parseInt(/\/laugh (\d*)/.exec(message.message)[1]);
   if (num_laughs > 50) {
-    send_message("No.");
+    send_message("No.", false);
     return;
   }
   var ret = "";
   for (var i=0 ; i<num_laughs ; i++) {
     ret += "ha";
   }
-  send_message("How funny: " + ret);
+  send_message("How funny: " + ret, false);
 }
 
 function echo_function(message) {
-  send_message("You said: " + /\/echo (.*)/.exec(message.message)[1]); 
+  send_message("You said: " + /\/echo (.*)/.exec(message.message)[1], false); 
 }
 
 function weather_function(message) {
@@ -99,9 +114,9 @@ function weather_function(message) {
             success: function(weather) {
                 if (weather['location'] != undefined) {
                     // TODO: handle locations outside of the US
-                    send_message("Temperature in " + weather['location']['city'] + ", " + weather['location']['state'] + " is currently " + weather['current_observation']['temp_f']);
+                    send_message("Temperature in " + weather['location']['city'] + ", " + weather['location']['state'] + " is currently " + weather['current_observation']['temp_f'], false);
                 } else {
-                    send_message("Error retrieving weather for " + loc + ". Maybe you should change the location string.");
+                    send_message("Error retrieving weather for " + loc + ". Maybe you should change the location string.", false);
                 }
             }
       }
@@ -109,18 +124,18 @@ function weather_function(message) {
 }
 
 function time_function(message) {
-  send_message("It is now " + Date());
+  send_message("It is now " + Date(), false);
 }
 
 function help_function(message) {
-  send_message("These are the available functions");
+  send_message("These are the available functions", false);
   for (var i = 0 ; i<bot_actions.length ; i++) {
-    send_message(bot_actions[i].description + ": " + bot_actions[i].pattern);
+    send_message(bot_actions[i].description + ": " + bot_actions[i].pattern, false);
   }
 }
 
 function conversation_name_function(message) {
-  send_message("In conversation with \"" + getConversationName() + "\"");
+  send_message("In conversation with \"" + getConversationName() + "\"", false);
 }
 
 // }}}
@@ -136,10 +151,21 @@ function getConversationName() {
 
 var chat_box = document.querySelector("[name=message_body]");
 var send_button = document.querySelector("#u_0_r");
-function send_message(message) {
+function send_message(message, delay) {
   chat_box.classList.remove("DOMControl_placeholder");
   chat_box.value = message;
-  send_button.click();
+
+  // make Facebook create thumbnails for images
+  var event = new CustomEvent("paste"); 
+  chat_box.dispatchEvent(event);
+
+  if (delay) {
+    setTimeout(function(){ // give Facebook time to process the potential thumbnail
+        send_button.click();
+    }, 2000);
+  } else {
+    send_button.click();
+  }
 }
 
 /* }}} */
