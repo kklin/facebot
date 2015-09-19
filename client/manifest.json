@@ -6,15 +6,17 @@
   "version": "1.0",
   "content_scripts" : [{
       "matches": [ "https://www.facebook.com/messages/*" ],
-      "js": ["pusher.min.js",
-             "facebot.js",
+      "js": ["scriptTagContext.js",
+             "pusher.min.js",
              "lodash.min.js",
-             "jquery-1.11.3.min.js"
+             "jquery-1.11.3.min.js",
+             "facebot.js"
             ]
       }
   ],
   "permissions": [
     "storage",
-    "https://en.wikipedia.org/w/api.php*"
+    "https://en.wikipedia.org/w/api.php*",
+    "*://apis.google.com/*"
   ]
 }

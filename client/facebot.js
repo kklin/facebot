@@ -47,7 +47,70 @@ var bot_actions = [
 { description: "Remove from TODO list", pattern: /^\/remove todo (\d+)/, action: remove_todo_function },
 { description: "Get a random gif", pattern: /^\/giphy/, action: giphy_function },
 { description: "Get the most relevant wikipedia page", pattern: /^\/wiki/, action: wiki_function },
+{ description: "Google authorize", pattern: /^\/gauth/, action: google_authorize_function },
+{ description: "Show calendar", pattern: /^\/calendar/, action: show_calendar_function },
 ];
+
+// Google integration {{{
+
+var CLIENT_ID = '260256874992-kg364rgkcsv54lggdo95fp9kksr5peur.apps.googleusercontent.com';
+
+var SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"];
+
+function gapiLoaded() {
+  console.log("GAPI loaded");
+}
+
+// TODO: need to make sure gapi client has finished loading first
+function google_authorize_function(message) {
+  console.log(gapi);
+  gapi.auth.authorize(
+   {client_id: CLIENT_ID, scope: SCOPES, immediate: false},
+   function(authResult) {
+     if (authResult && !authResult.error) {
+       send_message("Successfully authorized!");
+     } else {
+       send_message("Something went wrong while authorizing..");
+     }
+   });
+}
+
+function show_calendar_function(message) {
+  var gapi_key = 'AIzaSyCzGVMAAfbZpYOwmT7ObGc_Zvk1uKTU5wo'; // typically like Gtg-rtZdsreUr_fLfhgPfgff
+  gapi.client.setApiKey(gapi_key);
+  var who = /^\/calendar (.+)/.exec(message.message)[1];
+  gapi.client.load('calendar', 'v3', function() {
+    var request = gapi.client.calendar.events.list({
+      'calendarId': who,
+      'timeMin': (new Date()).toISOString(),
+      'showDeleted': false,
+      'singleEvents': true,
+      'maxResults': 10,
+      'orderBy': 'startTime'
+    });
+
+    request.execute(function(resp) {
+      var events = resp.items;
+      send_message('Upcoming events:', false);
+
+      if (events.length > 0) {
+        for (i = 0; i < events.length; i++) {
+          var event = events[i];
+          var when = event.start.dateTime;
+          if (!when) {
+            when = event.start.date;
+          }
+          send_message(event.summary + ' (' + when + ')', false)
+        }
+      } else {
+        send_message('No upcoming events found.', false);
+      }
+
+    });       
+  });
+}
+
+// }}}
 
 // TODO: refactor API calls to use data parameter instead of building link
 
@@ -168,6 +231,7 @@ function getConversationName() {
 }
 
 var chat_box = document.querySelector("[name=message_body]");
+// TODO: this selector breaks when there's multiple buttons (like if there's a popup box)
 var send_button = document.querySelector("#u_0_r");
 function send_message(message, delay) {
   chat_box.classList.remove("DOMControl_placeholder");
@@ -267,6 +331,11 @@ var observer = new MutationObserver(function(mutations) {
 });
 
 // }}}
+
+// Load the Google API
+var script = document.createElement('script');
+script.src = 'https://apis.google.com/js/client.js';
+document.head.appendChild(script);
 
 // start the processing logic
 var config = { childList: true };
