@@ -1,4 +1,4 @@
-var BOT_NAME = "Jarvis"; // TODO: put into some config file
+var BOT_NAME = "Jarvis Lin"; // TODO: put into some config file
 var ATTACHED_CONVERSATION = getConversationName(); // TODO: can we make this variable final?
 var GIPHY_API_KEY = 'dc6zaTOxFJmzC';
 
@@ -95,7 +95,7 @@ function show_calendar_function(message) {
 
     request.execute(function(resp) {
       var events = resp.items;
-      send_message('Upcoming events:', false);
+      var msg = "Upcoming events:\n";
 
       if (events.length > 0) {
         for (i = 0; i < events.length; i++) {
@@ -104,11 +104,12 @@ function show_calendar_function(message) {
           if (!when) {
             when = event.start.date;
           }
-          send_message(event.summary + ' (' + when + ')', false)
+          msg += event.summary + ' (' + when + ')\n'
         }
       } else {
-        send_message('No upcoming events found.', false);
+        var msg = 'No upcoming events found.';
       }
+      send_message(msg, false);
 
     });       
   });
@@ -254,10 +255,11 @@ function time_function(message) {
 
 // TODO: send one message with new lines instead of separate messages
 function help_function(message) {
-  send_message("These are the available functions", false);
+  var msg = "These are the available functions\n"
   for (var i = 0 ; i<bot_actions.length ; i++) {
-    send_message(bot_actions[i].description + ": " + bot_actions[i].pattern, false);
+    msg += bot_actions[i].description + ": " + bot_actions[i].pattern + "\n";
   }
+  send_message(msg, false);
 }
 
 function conversation_name_function(message) {
@@ -316,6 +318,10 @@ function parse_messages(message) {
 // the main processing loop
 function process(new_messages) {
   for (var i=0 ; i<new_messages.length ; i++) {
+    // ignore the messages that we send
+    if (new_messages[i].from == BOT_NAME) {
+      continue;
+    }
     console.log("Got a message at " + new_messages[i].timestamp + " from " + new_messages[i].from + ":");
     console.log(new_messages[i].message);
     for (var j=0 ; j<bot_actions.length ; j++) {
